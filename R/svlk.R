@@ -1,0 +1,51 @@
+#' svlk
+#'
+#' @param EC A linear kernel in the form of a symmetric numeric matrix. Row-
+#' and column-order must match the order of the levels of the environment
+#' factor in the dataframe that will be passed to ASReml-R.
+#'
+#' @return A function compatible with asreml::own() that uses the linear kernel
+#' and a single variance for each environment to compute the full covariance
+#' matrix and its partial derivatives.
+#' @export
+#'
+svlk <- function(EC) {
+  return(function(order, kappa) {
+    # The correlation matrix of the traits:
+    q <- nrow(EC)
+    p <- order / q
+    Ct <- matrix(1, p, p)
+    Ct[upper.tri(Ct)] <- Ct[lower.tri(Ct)] <- kappa[(p + 1):(p + ((p^2 - p) / 2))]
+
+    # The full covariance matrix:
+    S <- outer(sqrt(kappa[1:p]), sqrt(kappa[1:p]))
+    V <- kronecker(S * Ct, EC)
+
+    # Derivatives wrt kappa[1:p] (variances):
+    varderivs <- vector("list", p)
+    for (dk in 1:p) {
+      I <- matrix(0, p, p)
+      I[dk,] <- I[, dk] <- 1
+      I <- kronecker(I, matrix(1, q, q))
+      tmp <- sqrt(kappa[1:p])
+      tmp[dk] <- 1 / tmp[dk]
+      tmp <- outer(tmp, tmp)
+      tmp[dk, dk] <- 1
+      deriv <- 0.5 * I * kronecker(tmp * Ct, EC)
+      deriv[((dk - 1) * q + 1):(dk * q), ((dk - 1) * q + 1):(dk * q)] <-
+        deriv[((dk - 1) * q + 1):(dk * q), ((dk - 1) * q + 1):(dk * q)] * 2
+      varderivs[[dk]] <- deriv
+    }
+
+    # Derivatives wrt kappa[(p + 1):(p + ((p^2 - p) / 2))] (correlations):
+    corderivs <- vector("list", (p^2 - p) / 2)
+    for (dk in 1:((p^2 - p) / 2)) {
+      # Indicator matrix of where kappa[dk] is present:
+      I <- matrix(0, p, p)
+      I[upper.tri(I)][dk] <- I[lower.tri(I)][dk] <- 1
+      corderivs[[dk]] <- kronecker(S * I, EC)
+    }
+
+    return(c(list(V), varderivs, corderivs))
+  })
+}
