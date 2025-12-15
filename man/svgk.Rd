@@ -4,19 +4,66 @@
 \alias{svgk}
 \title{svgk}
 \usage{
-svgk(ED)
+svgk(D)
 }
 \arguments{
-\item{ED}{A distance matrix in the form of a symmetric numeric matrix. Row-
+\item{D}{A distance matrix in the form of a symmetric numeric matrix. Row-
 and column-order must match the order of the levels of the environment
 factor in the dataframe that will be passed to ASReml-R.}
 }
 \value{
 A function compatible with asreml::own() that uses the distance matrix
-to compute a non-linear kernel given a bandwidth \code{h}. This non-linear
+to compute a non-linear, Gaussian kernel given a bandwidth \code{h}. This non-linear
 kernel is then combined with a single variance for each environment to compute
 the full covariance matrix and its partial derivatives.
 }
 \description{
-svgk
+The \code{svgk} function computes the covariance matrix and partial derivative matrices
+for the single-variance Gaussian kernel model (SV-GK).
+This function can be used for both GxE and GxExM/GxExT models.
+The SV-GK model assumes that all environments within a level of management or
+trait have the same genetic variance. For GxE data, this means that only a
+single genetic variance is estimated. Instead of using a linear kernel, the
+SV-GK model uses a non-linear, Gaussian kernel for which a bandwidth parameter
+is estimated.
+}
+\examples{
+\dontrun{
+# For GxE data:
+vf <- cornfruit::svgk(D = distanceMatrix)
+# Variance + bandwidth:
+init <- c(0.1, 0.1)
+type <- c("V", "V")
+cons <- c("P", "P")
+fit <- asreml(fixed = Y ~ 1 + Environment,
+              random = ~ own(Environment, "vf", init, type, cons):vm(Genotype, K),
+              residual = ~ units,
+              data = df)
+
+# For GxExM data:
+vf <- cornfruit::svgk(D = distanceMatrix)
+p <- length(levels(df$Management))
+# Variances + correlations + bandwidth:
+init <- c(rep(0.1, p), rep(0.1, (p^2 - p) / 2), 0.1)
+type <- c(rep("V", p), rep("R", (p^2 - p) / 2), "V")
+cons <- c(rep("P", p), rep("U", (p^2 - p) / 2), "P")
+fit <- asreml(fixed = Y ~ 1 + ManagementEnvironment,
+              random = ~ own(ManagementEnvironment, "vf", init, type, cons):vm(Genotype, K),
+              residual = ~ units,
+              data = df)
+
+# For GxExT data:
+vf <- cornfruit::svgk(D = distanceMatrix)
+p <- length(levels(df$Trait))
+# Variances + correlations + bandwidth:
+init <- c(rep(0.1, p), rep(0.1, (p^2 - p) / 2), 0.1)
+type <- c(rep("V", p), rep("R", (p^2 - p) / 2), "V")
+cons <- c(rep("P", p), rep("U", (p^2 - p) / 2), "P")
+fit <- asreml(fixed = Y ~ 1 + TraitEnvironment,
+              random = ~ own(TraitEnvironment, "vf", init, type, cons):vm(Genotype, K),
+              residual = ~ units,
+              data = df,
+              asmv = Trait)
+}
+
 }
