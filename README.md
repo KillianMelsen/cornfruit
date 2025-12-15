@@ -1,5 +1,5 @@
 ### Installation
-```
+```R
 devtools::install_github("KillianMelsen/cornfruit")
 library(cornfruit)
 library(asreml)
