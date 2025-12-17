@@ -65,6 +65,9 @@
 mvgk <- function(D) {
   return(function(order, kappa) {
     if (order == nrow(D)) {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxE MV-GK model...")
+      # }
       # The full covariance matrix:
       S <- outer(sqrt(kappa[1:order]), sqrt(kappa[1:order]))
       C <- exp(-kappa[order + 1] * D)
@@ -77,8 +80,11 @@ mvgk <- function(D) {
         varderivs[[i]] <- V * (A + t(A)) / kappa[i]
       }
       # Covariance matrix, deriv wrt the variances and deriv wrt the bandwidth:
-      return(c(list(V), varderivs, list(-kappa[order + 1] * V)))
+      return(c(list(V), varderivs, list(-D * V)))
     } else {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxExM MV-GK model...")
+      # }
       # The correlation matrix of the traits:
       q <- nrow(D) # Number of environments
       p <- order / q # Number of managements

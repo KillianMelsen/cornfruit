@@ -59,10 +59,16 @@
 svlk <- function(C) {
   return(function(order, kappa) {
     if (order == nrow(C)) {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxE SV-LK model...")
+      # }
       # The full covariance matrix:
       V <- kappa[1] * C
       return(list(V, C))
     } else {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxExM SV-LK model...")
+      # }
       # The correlation matrix of the traits/managements:
       q <- nrow(C) # Number of environments
       p <- order / q # Number of managements

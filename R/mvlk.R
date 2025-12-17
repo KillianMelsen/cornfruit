@@ -62,6 +62,9 @@
 mvlk <- function(C) {
   return(function(order, kappa) {
     if (order == nrow(C)) {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxE MV-LK model...")
+      # }
       # The full covariance matrix:
       S <- outer(sqrt(kappa[1:order]), sqrt(kappa[1:order]))
       V <- S * C
@@ -74,6 +77,9 @@ mvlk <- function(C) {
       }
       return(c(list(V), varderivs))
     } else {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxExM MV-LK model...")
+      # }
       # The correlation matrix of the traits:
       q <- nrow(C) # Number of environments
       p <- order / q # Number of managements

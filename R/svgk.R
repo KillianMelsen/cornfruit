@@ -62,12 +62,18 @@
 svgk <- function(D) {
   return(function(order, kappa) {
     if (order == nrow(D)) {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxE SV-GK model...")
+      # }
       # The full covariance matrix:
       C <- exp(-kappa[2] * D)
       V <- kappa[1] * C
       # Covariance matrix, deriv wrt the variance and deriv wrt the bandwidth:
-      return(list(V, C, -kappa[2] * V))
+      return(list(V, C, -D * V))
     } else {
+      # if (all(kappa == get("init"))) {
+      #   message("Fitting GxExM SV-GK model...")
+      # }
       # The correlation matrix of the traits:
       q <- nrow(D) # Number of environments
       p <- order / q # Number of managements
