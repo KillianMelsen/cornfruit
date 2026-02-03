@@ -83,8 +83,9 @@ mvlk <- function(C) {
       # The correlation matrix of the traits:
       q <- nrow(C) # Number of environments
       p <- order / q # Number of managements
-      Ct <- matrix(1, p, p)
-      Ct[upper.tri(Ct)] <- Ct[lower.tri(Ct)] <- kappa[(order + 1):(order + ((p^2 - p) / 2))]
+      Ct <- diag(p)
+      Ct[lower.tri(Ct)] <- kappa[(order + 1):(order + ((p^2 - p) / 2))]
+      Ct <- Ct + t(Ct) - diag(p)
 
       # The full covariance matrix:
       S <- outer(sqrt(kappa[1:order]), sqrt(kappa[1:order]))
@@ -102,7 +103,8 @@ mvlk <- function(C) {
       corderivs <- vector("list", (p^2 - p) / 2)
       for (i in 1:((p^2 - p) / 2)) {
         B <- matrix(0, p, p)
-        B[upper.tri(B)][i] <- B[lower.tri(B)][i] <- 1
+        B[lower.tri(B)][i] <- 1
+        B <- B + t(B)
         corderivs[[i]] <- S * kronecker(B, C)
       }
 

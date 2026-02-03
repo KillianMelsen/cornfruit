@@ -77,8 +77,9 @@ svgk <- function(D) {
       # The correlation matrix of the traits:
       q <- nrow(D) # Number of environments
       p <- order / q # Number of managements
-      Ct <- matrix(1, p, p)
-      Ct[upper.tri(Ct)] <- Ct[lower.tri(Ct)] <- kappa[(p + 1):(p + ((p^2 - p) / 2))]
+      Ct <- diag(p)
+      Ct[lower.tri(Ct)] <- kappa[(p + 1):(p + ((p^2 - p) / 2))]
+      Ct <- Ct + t(Ct) - diag(p)
 
       # The full covariance matrix:
       S <- outer(sqrt(kappa[1:p]), sqrt(kappa[1:p]))
@@ -98,7 +99,8 @@ svgk <- function(D) {
       for (i in 1:((p^2 - p) / 2)) {
         # Indicator matrix of where kappa[dk] is present:
         B <- matrix(0, p, p)
-        B[upper.tri(B)][i] <- B[lower.tri(B)][i] <- 1
+        B[lower.tri(B)][i] <- 1
+        B <- B + t(B)
         corderivs[[i]] <- kronecker(S * B, C)
       }
 
